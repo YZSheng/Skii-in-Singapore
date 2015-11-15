@@ -166,10 +166,12 @@ function getBiggestDrop(routes, length) {
 
 fs.readFile('data.txt', 'utf-8', function (err, data) {
     if (err) throw err;
-    console.log('reading data');
-    var mockData = data.split(/\n/);
-    mockData.shift();
-    rawData = mockData.map(function (row) {
+
+    var readInData = data.split(/\n/), longestDistance, biggestDrop;
+    
+    readInData.shift();
+    
+    rawData = readInData.map(function (row) {
         return row.split(/\s/).map(function (number) {
             return parseInt(number);
         });
@@ -180,8 +182,12 @@ fs.readFile('data.txt', 'utf-8', function (err, data) {
     findPeaks();
     generateRoutes();
 
-    console.log("The longest distance is " + getLongestChild(allRoutes));
-    console.log("The drop for " + getLongestChild(allRoutes) + " steps is " + getBiggestDrop(allRoutes, getLongestChild(allRoutes)));
+    longestDistance = getLongestChild(allRoutes);
+    biggestDrop = getBiggestDrop(allRoutes, longestDistance);
+
+    console.log("The longest distance is " + longestDistance);
+    console.log("The drop for " + longestDistance + " steps is " + biggestDrop);
+    console.log("The email I should send to is " + longestDistance + biggestDrop + "@redmart.com");
 
 });
 
