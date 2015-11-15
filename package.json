@@ -1,0 +1,14 @@
+{
+  "name": "singapore-ski",
+  "version": "1.0.0",
+  "description": "redMart code challenge",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sheng Yunzhou",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^3.10.1"
+  }
+}
