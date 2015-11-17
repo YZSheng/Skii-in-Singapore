@@ -4,186 +4,200 @@
 
 'use strict';
 var fs = require('fs');
-var rawData;
-var BOUND;
-var peaks = [], allRoutes = [];
 
-function isHigherThanEast(x, y) {
-    return rawData[x][y] > rawData[x][y + 1];
-}
+var SkiGenerator = (function () {
 
-function isHigherThanSouth(x, y) {
-    return rawData[x][y] > rawData[x + 1][y];
-}
+    var BOUND;
+    var allRoutes = [];
+    var data;
 
-function isHigherThanWest(x, y) {
-    return rawData[x][y] > rawData[x][y - 1];
-}
-
-function isHigherThanNorth(x, y) {
-    return rawData[x][y] > rawData[x - 1][y];
-}
-
-function isPeak(x, y) {
-    if (x === 0 && y === 0) {
-        return isHigherThanEast(x, y) && isHigherThanSouth(x, y);
-    } else if (x === 0 && y === BOUND) {
-        return isHigherThanWest(x, y) && isHigherThanSouth(x, y);
-    } else if (x === BOUND && y === 0){
-        return isHigherThanEast(x, y) && isHigherThanEast(x, y);
-    } else if (x === 0) {
-        return isHigherThanEast(x, y) && isHigherThanSouth(x, y) && isHigherThanWest(x, y);
-    } else if (y === 0) {
-        return isHigherThanNorth(x, y) && isHigherThanEast(x, y) && isHigherThanSouth(x, y);
-    } else if (x === BOUND) {
-        return isHigherThanEast(x, y) && isHigherThanNorth(x, y) && isHigherThanWest(x, y);
-    } else if (y === BOUND) {
-        return isHigherThanNorth(x, y) && isHigherThanWest(x, y) && isHigherThanSouth(x, y);
-    } else {
-        return isHigherThanEast(x, y) && isHigherThanNorth(x, y) && isHigherThanWest(x, y) && isHigherThanSouth(x, y);
+    function isHigherThanEast(x, y) {
+        return data[x][y] > data[x][y + 1];
     }
-}
 
-function tryEast(x, y, steps) {
-    if (isHigherThanEast(x, y)) {
-        steps.push([x, y + 1]);
+    function isHigherThanSouth(x, y) {
+        return data[x][y] > data[x + 1][y];
     }
-}
-function trySouth(x, y, steps) {
-    if (isHigherThanSouth(x, y)) {
-        steps.push([x + 1, y]);
+
+    function isHigherThanWest(x, y) {
+        return data[x][y] > data[x][y - 1];
     }
-}
 
-function tryWest(x, y, steps) {
-    if (isHigherThanWest(x, y)) {
-        steps.push([x, y - 1]);
+    function isHigherThanNorth(x, y) {
+        return data[x][y] > data[x - 1][y];
     }
-}
-function tryNorth(x, y, steps) {
-    if (isHigherThanNorth(x, y)) {
-        steps.push([x - 1, y]);
-    }
-}
 
-function getPossibleSteps (point) {
-    var steps = [], x = point[0], y = point[1];
-    if (x === 0 && y === 0) {
-        tryEast(x, y, steps);
-        trySouth(x, y, steps);
-    } else if (x === 0 && y === BOUND) {
-        tryWest(x, y, steps);
-        trySouth(x, y, steps);
-    } else if (x === BOUND && y === 0){
-        tryNorth(x, y, steps);
-        tryEast(x, y, steps);
-    } else if (x === 0) {
-        tryWest(x, y, steps);
-        tryEast(x, y, steps);
-        trySouth(x, y, steps);
-    } else if (y === 0) {
-        tryNorth(x, y, steps);
-        tryEast(x, y, steps);
-        trySouth(x, y, steps);
-    } else if (x === BOUND) {
-        tryNorth(x, y, steps);
-        tryEast(x, y, steps);
-        tryWest(x, y, steps);
-    } else if (y === BOUND) {
-        tryNorth(x, y, steps);
-        tryWest(x, y, steps);
-        trySouth(x, y, steps);
-    } else {
-        tryNorth(x, y, steps);
-        tryWest(x, y, steps);
-        trySouth(x, y, steps);
-        tryEast(x, y, steps);
-    }
-    return steps
-}
-
-
-function findPeaks() {
-    for (var x = 0; x <= BOUND; x++) {
-        for (var y = 0; y <= BOUND; y++) {
-            if (isPeak(x, y)) {
-                peaks.push([x, y]);
-            }
-        }
-    }
-}
-
-function findNext(point, route) {
-    route.push(point);
-    var possibleNextPoints = getPossibleSteps(point);
-
-    possibleNextPoints.forEach(function (nextPoint) {
-
-        var currentRoute = route.slice(0); // take a copy of the route so far
-
-        if (getPossibleSteps(nextPoint).length === 0) {
-            currentRoute.push(nextPoint);
-            allRoutes.push(currentRoute);
+    function isPeak(x, y) {
+        if (x === 0 && y === 0) {
+            return isHigherThanEast(x, y) && isHigherThanSouth(x, y);
+        } else if (x === 0 && y === BOUND) {
+            return isHigherThanWest(x, y) && isHigherThanSouth(x, y);
+        } else if (x === BOUND && y === 0){
+            return isHigherThanEast(x, y) && isHigherThanEast(x, y);
+        } else if (x === 0) {
+            return isHigherThanEast(x, y) && isHigherThanSouth(x, y) && isHigherThanWest(x, y);
+        } else if (y === 0) {
+            return isHigherThanNorth(x, y) && isHigherThanEast(x, y) && isHigherThanSouth(x, y);
+        } else if (x === BOUND) {
+            return isHigherThanEast(x, y) && isHigherThanNorth(x, y) && isHigherThanWest(x, y);
+        } else if (y === BOUND) {
+            return isHigherThanNorth(x, y) && isHigherThanWest(x, y) && isHigherThanSouth(x, y);
         } else {
-            findNext(nextPoint, currentRoute);
+            return isHigherThanEast(x, y) && isHigherThanNorth(x, y) && isHigherThanWest(x, y) && isHigherThanSouth(x, y);
         }
-    });
-}
+    }
 
-function generateRoutes() {
-    peaks.forEach(function (peak) {
-        var currentRoute = [];
-        findNext(peak, currentRoute);
-    });
-}
-
-function getLongestChild(routes) {
-    var longest = 0;
-    routes.forEach(function (child) {
-        if (child.length > longest) {
-            longest = child.length;
+    function tryEast(x, y, steps) {
+        if (isHigherThanEast(x, y)) {
+            steps.push([x, y + 1]);
         }
-    });
+    }
+    function trySouth(x, y, steps) {
+        if (isHigherThanSouth(x, y)) {
+            steps.push([x + 1, y]);
+        }
+    }
 
-    return longest;
-}
+    function tryWest(x, y, steps) {
+        if (isHigherThanWest(x, y)) {
+            steps.push([x, y - 1]);
+        }
+    }
+    function tryNorth(x, y, steps) {
+        if (isHigherThanNorth(x, y)) {
+            steps.push([x - 1, y]);
+        }
+    }
 
-function getBiggestDrop(routes, length) {
-    var drop = 0;
-    routes.forEach(function (child) {
-        if (child.length === length) {
-            var startingPoint = child[0],
-                endingPoint = child[length - 1],
-                diff = rawData[startingPoint[0]][startingPoint[1]] - rawData[endingPoint[0]][endingPoint[1]];
-            if (drop < diff) {
-                drop = diff;
+    function getPossibleSteps (point) {
+        var steps = [], x = point[0], y = point[1];
+        if (x === 0 && y === 0) {
+            tryEast(x, y, steps);
+            trySouth(x, y, steps);
+        } else if (x === 0 && y === BOUND) {
+            tryWest(x, y, steps);
+            trySouth(x, y, steps);
+        } else if (x === BOUND && y === 0){
+            tryNorth(x, y, steps);
+            tryEast(x, y, steps);
+        } else if (x === 0) {
+            tryWest(x, y, steps);
+            tryEast(x, y, steps);
+            trySouth(x, y, steps);
+        } else if (y === 0) {
+            tryNorth(x, y, steps);
+            tryEast(x, y, steps);
+            trySouth(x, y, steps);
+        } else if (x === BOUND) {
+            tryNorth(x, y, steps);
+            tryEast(x, y, steps);
+            tryWest(x, y, steps);
+        } else if (y === BOUND) {
+            tryNorth(x, y, steps);
+            tryWest(x, y, steps);
+            trySouth(x, y, steps);
+        } else {
+            tryNorth(x, y, steps);
+            tryWest(x, y, steps);
+            trySouth(x, y, steps);
+            tryEast(x, y, steps);
+        }
+        return steps
+    }
+
+
+    function findPeaks() {
+        var peaks = [];
+
+        BOUND = data[0].length - 1;
+
+        for (var x = 0; x <= BOUND; x++) {
+            for (var y = 0; y <= BOUND; y++) {
+                if (isPeak(x, y)) {
+                    peaks.push([x, y]);
+                }
             }
         }
-    });
+        return peaks;
+    }
 
-    return drop;
-}
+    function findNext(point, route) {
+        route.push(point);
+        var possibleNextPoints = getPossibleSteps(point);
+
+        possibleNextPoints.forEach(function (nextPoint) {
+
+            var currentRoute = route.slice(0); // take a copy of the route so far
+
+            if (getPossibleSteps(nextPoint).length === 0) {
+                currentRoute.push(nextPoint);
+                allRoutes.push(currentRoute);
+            } else {
+                findNext(nextPoint, currentRoute);
+            }
+        });
+    }
+
+    function generateRoutes(formattedData) {
+        data = formattedData;
+        findPeaks().forEach(function (peak) {
+            var currentRoute = [];
+            findNext(peak, currentRoute);
+        });
+    }
+
+    function getLongestChild() {
+        var longest = 0;
+        allRoutes.forEach(function (child) {
+            if (child.length > longest) {
+                longest = child.length;
+            }
+        });
+
+        return longest;
+    }
+
+    function getBiggestDrop(length) {
+        var drop = 0;
+        allRoutes.forEach(function (child) {
+            if (child.length === length) {
+                var startingPoint = child[0],
+                    endingPoint = child[length - 1],
+                    diff = data[startingPoint[0]][startingPoint[1]] - data[endingPoint[0]][endingPoint[1]];
+                if (drop < diff) {
+                    drop = diff;
+                }
+            }
+        });
+
+        return drop;
+    }
+
+    return {
+        generateRoutes: generateRoutes,
+        getLongestChild: getLongestChild,
+        getBiggestDrop: getBiggestDrop
+    };
+
+})();
 
 fs.readFile('data.txt', 'utf-8', function (err, data) {
     if (err) throw err;
 
-    var readInData = data.split(/\n/), longestDistance, biggestDrop;
-    
+    var readInData = data.split(/\n/), longestDistance, biggestDrop, formattedData;
+
     readInData.shift();
     
-    rawData = readInData.map(function (row) {
+    formattedData = readInData.map(function (row) {
         return row.split(/\s/).map(function (number) {
             return parseInt(number);
         });
     });
 
-    BOUND = rawData[0].length - 1;
+    SkiGenerator.generateRoutes(formattedData);
 
-    findPeaks();
-    generateRoutes();
-
-    longestDistance = getLongestChild(allRoutes);
-    biggestDrop = getBiggestDrop(allRoutes, longestDistance);
+    longestDistance = SkiGenerator.getLongestChild();
+    biggestDrop = SkiGenerator.getBiggestDrop(longestDistance);
 
     console.log("The longest distance is " + longestDistance);
     console.log("The drop for " + longestDistance + " steps is " + biggestDrop);
